@@ -76,3 +76,15 @@ test('basic rule parsing', function (t) {
     });
     p.end();
 });
+
+test('top-level binding', function (t) {
+    t.plan(2);
+    var src = 'cxx = clang++';
+
+    var p = parser();
+    p.on('binding', function (key, value) {
+        t.equal(key, 'cxx');
+        t.deepEqual(value, ['clang++']);
+    });
+    p.end(src);
+});

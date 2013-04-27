@@ -208,7 +208,7 @@ NinjaParser.prototype._doParse = function (chunk) {
         this.emit('ruleHead', m[1]);
     }
     // Variable binding, e.g. for `rule` or `build`.
-    if ((m = /^\s+([a-zA-Z0-9._-]+)\s*=\s*/.exec(chunk))) {
+    if ((m = /^\s*([a-zA-Z0-9._-]+)\s*=\s*/.exec(chunk))) {
         var key = m[1];
         chunk = chunk.slice(m[0].length);
         this.emit('binding', key, splitEvalString(chunk));
