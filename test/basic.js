@@ -13,12 +13,12 @@ test('ruleHead event', function (t) {
 });
 
 
-test('varEqVal event', function (t) {
-    function check(src, varName, val) {
+test('\'binding\' event', function (t) {
+    function check(src, expectedKey, expectedValue) {
         var p = parser();
-        p.on('varEqVal', function (varName_, val_) {
-            t.equal(varName_, varName);
-            t.deepEqual(val_, val);
+        p.on('binding', function (key, value) {
+            t.equal(key, expectedKey);
+            t.deepEqual(value, expectedValue);
         });
         p.end(src);
     }
@@ -59,10 +59,10 @@ test('basic rule parsing', function (t) {
         };
     });
     var count = 0;
-    p.on('varEqVal', function (varName, val) {
+    p.on('binding', function (key, value) {
         rule.bindings.push({
-            key: varName,
-            value: val
+            key: key,
+            value: value
         });
         count += 1;
         t.equal(rule.bindings.length, count);
