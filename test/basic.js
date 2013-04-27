@@ -41,3 +41,38 @@ test('finish parsing on end', function (t) {
     });
     p.end(src);
 });
+
+test('basic rule parsing', function (t) {
+    var src =
+        'rule cxx\n' +
+        '  command = $cxx $cxxflags -MMD -MT $out -MF $out.d -o $out -c $in\n' +
+        '  description = CXX $in\n' +
+        '  depfile = $out.d\n';
+
+    var p = parser();
+    var rule = null;
+    p.on('ruleHead', function (name) {
+        t.equal(rule, null, '\'ruleHead\' should be first event');
+        rule = {
+            name: name,
+            bindings: []
+        };
+    });
+    var count = 0;
+    p.on('varEqVal', function (varName, val) {
+        rule.bindings.push({
+            key: varName,
+            value: val
+        });
+        count += 1;
+        t.equal(rule.bindings.length, count);
+        if (count === 3) {
+            t.end();
+        }
+    });
+    // Ensure that buffering is happening correctly.
+    src.split('').forEach(function (e) {
+        p.write(e);
+    });
+    p.end();
+});
