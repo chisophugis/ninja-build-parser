@@ -35,6 +35,10 @@ function NinjaParser() {
     // Buffers up until chunks until a full line is found (well, permitting
     // $\n escapes).
     this._waitingForNewline = '';
+
+    this.on('finish', function () {
+        this._doParse(this._waitingForNewline);
+    });
 }
 
 NinjaParser.prototype = Object.create(Writable.prototype, {

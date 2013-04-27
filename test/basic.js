@@ -31,3 +31,13 @@ test('varEqVal event', function (t) {
           [{varName: 'foo'}, ' :$']);
     t.end();
 });
+
+test('finish parsing on end', function (t) {
+    t.plan(1);
+    var src = 'rule noTerminatingNewline';
+    var p = parser();
+    p.on('ruleHead', function (name) {
+        t.pass('\'ruleHead\' event was emitted');
+    });
+    p.end(src);
+});
