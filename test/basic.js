@@ -16,7 +16,8 @@ test('ruleHead event', function (t) {
 test('\'binding\' event', function (t) {
     function check(src, expectedKey, expectedValue) {
         var p = parser();
-        p.on('binding', function (key, value) {
+        p.on('binding', function (indent, key, value) {
+            t.equal(indent, '  ');
             t.equal(key, expectedKey);
             t.deepEqual(value, expectedValue);
         });
@@ -59,13 +60,14 @@ test('basic rule parsing', function (t) {
         };
     });
     var count = 0;
-    p.on('binding', function (key, value) {
+    p.on('binding', function (indent, key, value) {
         rule.bindings.push({
             key: key,
             value: value
         });
         count += 1;
         t.equal(rule.bindings.length, count);
+        t.equal(indent, '  ');
         if (count === 3) {
             t.end();
         }
@@ -78,11 +80,12 @@ test('basic rule parsing', function (t) {
 });
 
 test('top-level binding', function (t) {
-    t.plan(2);
+    t.plan(3);
     var src = 'cxx = clang++';
 
     var p = parser();
-    p.on('binding', function (key, value) {
+    p.on('binding', function (indent, key, value) {
+        t.equal(indent, '');
         t.equal(key, 'cxx');
         t.deepEqual(value, ['clang++']);
     });
