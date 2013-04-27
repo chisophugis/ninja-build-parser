@@ -32,18 +32,37 @@ function NinjaParser() {
     this._varnameSoFar = '';
     // Holds the current state we're in.
     this._state = 0x00; // TOP_LEVEL. FIXME: avoid hoisting and use `TOP_LEVEL`.
+    // Buffers up until chunks until a full line is found (well, permitting
+    // $\n escapes).
+    this._waitingForNewline = '';
 }
 
 NinjaParser.prototype = Object.create(Writable.prototype, {
   constructor: { value: NinjaParser }
 });
 
+function cleanDollarNewlineEscapes(chunk) {
+    return chunk.replace(/(\$\n)/g, function (match, p1, offset, string) {
+        if (offset === 0 || string.charAt(offset - 1) === '$') {
+            return match;
+        }
+        return '';
+    });
+}
+
 NinjaParser.prototype._write = function (chunk, encoding, done) {
+    // TODO: keep track of current line
+    if (chunk.length === 0) { done(); return; }
     if (Buffer.isBuffer(chunk)) { chunk = chunk.toString(encoding); }
-    chunk = this._previous + chunk;
-    if (chunk.length > 0) {
-        this._doParse(chunk);
+    chunk = this._waitingForNewline + chunk;
+    chunk = cleanDollarNewlineEscapes(chunk);
+    for (;;) {
+        var idx = chunk.indexOf('\n');
+        if (idx === -1) { break; }
+        this._doParse(chunk.slice(0, idx));
+        chunk = chunk.slice(idx + 1);
     }
+    this._waitingForNewline = chunk;
     done();
 };
 
@@ -85,7 +104,16 @@ var FLAG_SKIPPING_WHITESPACE = 1 << 20;
 function isVarnameChar(code) {
     return (code >= 0x61 && code <= 0x7a) || // [a-z]
            (code >= 0x41 && code <= 0x5a) || // [A-Z]
+           (code >= 0x30 && code <= 0x39) || // [0-9]
            code === 0x2e || code === 0x5f || code === 0x2d; // [._-]
+
+}
+
+function isVarnameCharNoDot(code) {
+    return (code >= 0x61 && code <= 0x7a) || // [a-z]
+           (code >= 0x41 && code <= 0x5a) || // [A-Z]
+           (code >= 0x30 && code <= 0x39) || // [0-9]
+           code === 0x5f || code === 0x2d; // [._-]
 
 }
 
@@ -104,7 +132,86 @@ NinjaParser.prototype.error = function (chunk, i) {
     process.exit();
 };
 
+// Join all adjacent strings.
+function normalizeEvalStringArray(arr) {
+    var ret = [];
+    for (var i = 0, n = arr.length; i !== n; ++i) {
+        var val = arr[i];
+        if (typeof val === 'object') {
+            ret.push(val);
+            continue;
+        }
+        if (val === '') {
+            continue;
+        }
+        if (ret.length > 0 && typeof ret[ret.length - 1] === 'string') {
+            ret[ret.length - 1] += val;
+        } else {
+            ret.push(val);
+        }
+    }
+    return ret;
+}
+
+function splitEvalString(s) {
+    var ret = [];
+    var lastIdx = 0;
+    for (var i = 0, n = s.length; i !== n; ) {
+        if (s.charAt(i) !== '$') { i += 1; continue; }
+        ret.push(s.slice(lastIdx, i));
+        i += 1;
+        if (i === n) {
+            throw new Error('Unterminated \'$\'');
+        }
+        var next = s.charAt(i);
+        if (next === '$' || next === ':' || next === ' ') {
+            ret.push(next);
+            i += 1;
+            lastIdx = i;
+            continue;
+        }
+        if (next === '{') {
+            i += 1;
+            var varNameStart = i;
+            while (i !== n && isVarnameChar(s.charCodeAt(i))) {
+                i += 1;
+            }
+            ret.push({ varName: s.slice(varNameStart, i) });
+            if (i === n || s.charAt(i) !== '}') {
+                // FIXME: Need proper error handling
+                throw new Error('Expected \'}\'');
+            }
+            i += 1;
+            lastIdx = i;
+            continue;
+        }
+        if (isVarnameCharNoDot(s.charCodeAt(i))) {
+            var varNameStart = i;
+            while (i !== n && isVarnameCharNoDot(s.charCodeAt(i))) {
+                i += 1;
+            }
+            ret.push({ varName: s.slice(varNameStart, i) });
+            lastIdx = i;
+        }
+    }
+    ret.push(s.slice(lastIdx, i));
+    return normalizeEvalStringArray(ret);
+}
+
 NinjaParser.prototype._doParse = function (chunk) {
+    var m;
+    if ((m = /^\s*rule\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
+        this.emit('ruleHead', m[1]);
+    }
+    // Variable binding, e.g. for `rule` or `build`.
+    if ((m = /^\s+([a-zA-Z0-9._-]+)\s*=\s*/.exec(chunk))) {
+        var varName = m[1];
+        chunk = chunk.slice(m[0].length);
+        this.emit('varEqVal', varName, splitEvalString(chunk));
+    }
+    return;
+    // This is clearly work in progress code...
+
     var i = 0;
     var state = this._state;
     var len = chunk.length;

@@ -13,6 +13,6 @@
   "author": "Sean Silva",
   "license": "MIT",
   "devDependencies": {
-    "tape": "~0.3.3"
+    "tap": "~0.4.1"
   }
 }
