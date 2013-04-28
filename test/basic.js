@@ -91,3 +91,31 @@ test('top-level binding', function (t) {
     });
     p.end(src);
 });
+
+test('\'buildHead\' event', function (t) {
+    t.plan(5);
+    var src = 'build foo: bar baz';
+    var p = parser();
+    p.on('buildHead', function (o) {
+        t.deepEqual(o.outs, [['foo']]);
+        t.equal(o.ruleName, 'bar');
+        t.deepEqual(o.ins, [['baz']]);
+        t.deepEqual(o.implicit, []);
+        t.deepEqual(o.orderOnly, []);
+    });
+    p.end(src);
+});
+
+test('Real \'buildHead\' event', function (t) {
+    t.plan(5);
+    var src = 'build build.ninja: configure | configure.py misc/ninja_syntax.py';
+    var p = parser();
+    p.on('buildHead', function (o) {
+        t.deepEqual(o.outs, [['build.ninja']]);
+        t.equal(o.ruleName, 'configure');
+        t.deepEqual(o.ins, []);
+        t.deepEqual(o.implicit, [['configure.py'], ['misc/ninja_syntax.py']]);
+        t.deepEqual(o.orderOnly, []);
+    });
+    p.end(src);
+});

@@ -196,10 +196,18 @@ function splitEvalString(s) {
             }
             ret.push({ varName: s.slice(varNameStart, i) });
             lastIdx = i;
+            continue;
         }
+        throw new Error('Unexpected $ escape \'$' + next + '\'');
     }
     ret.push(s.slice(lastIdx, i));
     return normalizeEvalStringArray(ret);
+}
+
+function skipSpaces(s) {
+    var idx = s.search(/[^ ]/);
+    if (idx === -1) { return ''; }
+    return s.slice(idx);
 }
 
 NinjaParser.prototype._doParse = function (chunk) {
@@ -213,6 +221,57 @@ NinjaParser.prototype._doParse = function (chunk) {
         var key = m[2];
         chunk = chunk.slice(m[0].length);
         this.emit('binding', indent, key, splitEvalString(chunk));
+    }
+    if ((m = /^\s*build\s+/.exec(chunk))) {
+        chunk = chunk.slice(m[0].length);
+        var idx;
+        var outs = [];
+        while ((idx = chunk.search(/[^$][: ]/)) !== -1) {
+            // match officially starts on the [^$].
+            var wasColon = chunk.charAt(idx + 1) === ':';
+            outs.push(splitEvalString(chunk.slice(0, idx + 1)));
+            chunk = skipSpaces(chunk.slice(idx + 2)); // Advance past match.
+            if (wasColon) {
+                break; // done parsing the out-edges.
+            }
+        }
+        m = /^[a-zA-Z0-9._-]+/.exec(chunk);
+        if (!m) {
+            throw new Error(util.format('expecting rule name for ' +
+                                        'build statement %j', outs));
+        }
+        var ruleName = m[0];
+        chunk = skipSpaces(chunk.slice(m[0].length));
+        var deps = [[], [], []];
+        // 0 = just after ':', expecting ' ', '|', '||', or EOL
+        // 1 = after '|', expecting ' ', '||', or EOL
+        // 2 = after '||', expecting ' ', or EOL.
+        // Index into `deps`.
+        var state = 0;
+        for (;;) {
+            var opMatch = chunk.match(/^\|\|?/);
+            if (opMatch !== null) {
+                var op = opMatch[0].trim();
+                if (state >= op.length) {
+                    throw new Error('Only need to specify | or || once.');
+                }
+                state = op.length;
+                chunk = skipSpaces(chunk.slice(op.length));
+            }
+            idx = chunk.search(/[^$](?:[: |]|$)/);
+            if (idx === -1) {
+                break;
+            }
+            deps[state].push(splitEvalString(chunk.slice(0, idx + 1)));
+            chunk = skipSpaces(chunk.slice(idx + 1));
+        }
+        this.emit('buildHead', {
+            outs: outs,
+            ruleName: ruleName,
+            ins: deps[0],
+            implicit: deps[1],
+            orderOnly: deps[2]
+        });
     }
     return;
     // This is clearly work in progress code...
