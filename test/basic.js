@@ -160,3 +160,36 @@ test('\'poolHead\' event', function (t) {
     });
     p.end(src);
 });
+
+test('$\\n escapes skip leading whitespace on next line', function (t) {
+    t.plan(4 * 3);
+    var src = 'key = stuck$$$\n    together';
+    function feed(fn) {
+        var p = parser();
+        p.on('binding', function (indent, key, value) {
+            t.equal(indent, '');
+            t.equal(key, 'key');
+            t.deepEqual(value, ['stuck$together']);
+        });
+        fn(p);
+    }
+    feed(function (p) {
+        var a = ['key = stuck$','$$\n    together'];
+        a.forEach(function (e) { p.write(e); });
+        p.end();
+    });
+    feed(function (p) {
+        var a = ['key = stuck$','$$\n    together'];
+        a.forEach(function (e) { p.write(e); });
+        p.end();
+    });
+    feed(function (p) {
+        src.split('').forEach(function (e) {
+            p.write(e);
+        });
+        p.end();
+    });
+    feed(function (p) {
+        p.end(src);
+    });
+});

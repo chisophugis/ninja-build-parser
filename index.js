@@ -35,6 +35,9 @@ function NinjaParser() {
     // Buffers up until chunks until a full line is found (well, permitting
     // $\n escapes).
     this._waitingForNewline = '';
+    // After we see a $\n escape, we need to make note that we are skipping
+    // spaces. This has to persist across calls to _write.
+    this._skippingSpaces = false;
 
     this.on('finish', function () {
         this._doParse(this._waitingForNewline);
@@ -45,21 +48,28 @@ NinjaParser.prototype = Object.create(Writable.prototype, {
   constructor: { value: NinjaParser }
 });
 
-function cleanDollarNewlineEscapes(chunk) {
-    return chunk.replace(/(\$\n)/g, function (match, p1, offset, string) {
-        if (offset === 0 || string.charAt(offset - 1) === '$') {
-            return match;
-        }
-        return '';
-    });
-}
-
 NinjaParser.prototype._write = function (chunk, encoding, done) {
     // TODO: keep track of current line
     if (chunk.length === 0) { done(); return; }
     if (Buffer.isBuffer(chunk)) { chunk = chunk.toString(encoding); }
+    if (this._skippingSpaces) {
+        var idx = chunk.search(/[^ ]/);
+        if (idx === -1) { // This chunk is entirely whitespace, skip it.
+            done();
+            return;
+        }
+        this._skippingSpaces = false;
+        chunk = chunk.slice(idx);
+    }
     chunk = this._waitingForNewline + chunk;
-    chunk = cleanDollarNewlineEscapes(chunk);
+    var self = this;
+    function replacer(match, p1, offset, string) {
+        if (match.length + offset === string.length) {
+            self._skippingSpaces = true;
+        }
+        return p1;
+    }
+    chunk = chunk.replace(/((?:^|[^$])(?:\$\$)*)\$\n */g, replacer);
     for (;;) {
         var idx = chunk.indexOf('\n');
         if (idx === -1) { break; }
