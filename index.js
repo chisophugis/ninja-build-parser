@@ -283,6 +283,13 @@ NinjaParser.prototype._doParse = function (chunk) {
         }
         this.emit('default', defaults);
     }
+    if ((m = /^\s*(include|subninja)\s+/.exec(chunk))) {
+        // Since the handling of 'include' and 'subninja' will be basically
+        // the same for a client, it doesn't make sense to have separate
+        // events for each of them. Instead, we bunch them both into a
+        // 'fileReference' event.
+        this.emit('fileReference', m[1], splitEvalString(chunk.slice(m[0].length)));
+    }
     return;
     // This is clearly work in progress code...
 

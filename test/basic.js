@@ -132,3 +132,19 @@ test('\'default\' event', function (t) {
     });
     p.end(src);
 });
+
+test('\'fileReference\' event', function (t) {
+    t.plan(4);
+    var src = 'include includeMe.ninja\n' +
+              'subninja subninjaMe.ninja';
+    var p = parser();
+    p.once('fileReference', function (kind, path) {
+        t.equal(kind, 'include');
+        t.deepEqual(path, ['includeMe.ninja']);
+        p.once('fileReference', function (kind, path) {
+            t.equal(kind, 'subninja');
+            t.deepEqual(path, ['subninjaMe.ninja'])
+        });
+    });
+    p.end(src);
+});
