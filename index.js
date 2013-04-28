@@ -273,6 +273,16 @@ NinjaParser.prototype._doParse = function (chunk) {
             orderOnly: deps[2]
         });
     }
+    if ((m = /^\s*default\s+/.exec(chunk))) {
+        chunk = chunk.slice(m[0].length);
+        var idx;
+        var defaults = [];
+        while ((idx = chunk.search(/[^$](?: |$)/)) !== -1) {
+            defaults.push(splitEvalString(chunk.slice(0, idx + 1)));
+            chunk = skipSpaces(chunk.slice(idx + 1));
+        }
+        this.emit('default', defaults);
+    }
     return;
     // This is clearly work in progress code...
 

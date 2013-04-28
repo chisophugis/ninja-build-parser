@@ -119,3 +119,16 @@ test('Real \'buildHead\' event', function (t) {
     });
     p.end(src);
 });
+
+test('\'default\' event', function (t) {
+    t.plan(1);
+    var src = 'default $foo$ bar baz$\n  ';
+    var p = parser();
+    p.on('default', function (defaults) {
+        t.deepEqual(defaults, [
+            [{varName: 'foo'}, ' bar'],
+            ['baz']
+        ]);
+    });
+    p.end(src);
+});
