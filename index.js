@@ -55,20 +55,15 @@ NinjaParser.prototype._write = function (chunk, encoding, done) {
     done();
 };
 
-function isVarnameChar(code) {
-    return (code >= 0x61 && code <= 0x7a) || // [a-z]
-           (code >= 0x41 && code <= 0x5a) || // [A-Z]
-           (code >= 0x30 && code <= 0x39) || // [0-9]
-           code === 0x2e || code === 0x5f || code === 0x2d; // [._-]
-
-}
-
 function isVarnameCharNoDot(code) {
     return (code >= 0x61 && code <= 0x7a) || // [a-z]
            (code >= 0x41 && code <= 0x5a) || // [A-Z]
            (code >= 0x30 && code <= 0x39) || // [0-9]
-           code === 0x5f || code === 0x2d; // [._-]
+           code === 0x5f || code === 0x2d; // [_-]
+}
 
+function isVarnameChar(code) {
+    return isVarnameCharNoDot(code) || code === 0x2e;
 }
 
 // Join all adjacent strings.
