@@ -225,11 +225,11 @@ NinjaParser.prototype._doParse = function (chunk) {
     if ((m = /^\s*build\s+/.exec(chunk))) {
         chunk = chunk.slice(m[0].length);
         var idx;
-        var outs = [];
+        var outputs = [];
         while ((idx = chunk.search(/[^$][: ]/)) !== -1) {
             // match officially starts on the [^$].
             var wasColon = chunk.charAt(idx + 1) === ':';
-            outs.push(splitEvalString(chunk.slice(0, idx + 1)));
+            outputs.push(splitEvalString(chunk.slice(0, idx + 1)));
             chunk = skipSpaces(chunk.slice(idx + 2)); // Advance past match.
             if (wasColon) {
                 break; // done parsing the out-edges.
@@ -238,7 +238,7 @@ NinjaParser.prototype._doParse = function (chunk) {
         m = /^[a-zA-Z0-9._-]+/.exec(chunk);
         if (!m) {
             throw new Error(util.format('expecting rule name for ' +
-                                        'build statement %j', outs));
+                                        'build statement %j', outputs));
         }
         var ruleName = m[0];
         chunk = skipSpaces(chunk.slice(m[0].length));
@@ -266,9 +266,9 @@ NinjaParser.prototype._doParse = function (chunk) {
             chunk = skipSpaces(chunk.slice(idx + 1));
         }
         this.emit('buildHead', {
-            outs: outs,
+            outputs: outputs,
             ruleName: ruleName,
-            ins: deps[0],
+            inputs: deps[0],
             implicit: deps[1],
             orderOnly: deps[2]
         });
