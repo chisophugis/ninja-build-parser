@@ -150,3 +150,13 @@ test('\'fileReference\' event', function (t) {
     });
     p.end(src);
 });
+
+test('\'poolHead\' event', function (t) {
+    t.plan(1);
+    var src = 'pool test_pool';
+    var p = parser();
+    p.on('poolHead', function (name) {
+        t.equal(name, 'test_pool');
+    });
+    p.end(src);
+});

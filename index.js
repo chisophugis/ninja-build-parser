@@ -215,6 +215,9 @@ NinjaParser.prototype._doParse = function (chunk) {
     if ((m = /^\s*rule\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
         this.emit('ruleHead', m[1]);
     }
+    if ((m = /^\s*pool\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
+        this.emit('poolHead', m[1]);
+    }
     // Variable binding, e.g. for `rule` or `build`.
     if ((m = /^(\s*)([a-zA-Z0-9._-]+)\s*=\s*/.exec(chunk))) {
         var indent = m[1];
