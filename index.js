@@ -87,6 +87,16 @@ function normalizeEvalStringArray(arr) {
     return ret;
 }
 
+// This function splits a so-called "EvalString" (that's what ninja's
+// source calls it internally). Basically an EvalString is a region of the
+// .ninja file that possibly has variable substitutions. This function
+// takes a string, and converts it into an array containing alternating
+// entries of the form:
+// * `'string'` represents literal text to be interpreted as-is.
+// * `{varName: 'name'}` represents a variable substitution, where 'name'
+//   is the variable name whose value should be substituted.
+// E.g. the string 'foo$bar' would become: ['foo', {varName: 'bar'}]
+// This function also deals with a couple escapes that ninja permits.
 function splitEvalString(s) {
     var ret = [];
     var lastIdx = 0;
