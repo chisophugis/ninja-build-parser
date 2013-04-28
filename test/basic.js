@@ -122,7 +122,9 @@ test('Real \'buildHead\' event', function (t) {
 
 test('\'default\' event', function (t) {
     t.plan(1);
-    var src = 'default $foo$ bar baz$\n  ';
+    var src = 'default $foo$ bar baz$\n  \n' +
+              '# A comment\n' + // Get some testing that comments are ignored.
+              '  # An indented comment\n';
     var p = parser();
     p.on('default', function (defaults) {
         t.deepEqual(defaults, [
