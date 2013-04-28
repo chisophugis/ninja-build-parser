@@ -281,9 +281,11 @@ NinjaParser.prototype._doParse = function (chunk) {
         this.emit('buildHead', {
             outputs: outputs,
             ruleName: ruleName,
-            inputs: deps[0],
-            implicit: deps[1],
-            orderOnly: deps[2]
+            inputs: {
+                explicit: deps[0],
+                implicit: deps[1],
+                orderOnly: deps[2]
+            }
         });
     }
     if ((m = /^\s*default\s+/.exec(chunk))) {

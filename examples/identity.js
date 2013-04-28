@@ -46,9 +46,9 @@ p.on('buildHead', function (o) {
     function maybeWrite(a, sep) {
         a.length && out.write(sep + a.map(fmtEvalString).join(' '));
     }
-    maybeWrite(o.inputs, ' ');
-    maybeWrite(o.implicit, ' | ');
-    maybeWrite(o.orderOnly, ' || ')
+    maybeWrite(o.inputs.explicit, ' ');
+    maybeWrite(o.inputs.implicit, ' | ');
+    maybeWrite(o.inputs.orderOnly, ' || ')
     out.write('\n');
 });
 p.on('default', function (defaults) {

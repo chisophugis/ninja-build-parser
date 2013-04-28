@@ -99,9 +99,9 @@ test('\'buildHead\' event', function (t) {
     p.on('buildHead', function (o) {
         t.deepEqual(o.outputs, [['foo']]);
         t.equal(o.ruleName, 'bar');
-        t.deepEqual(o.inputs, [['baz']]);
-        t.deepEqual(o.implicit, []);
-        t.deepEqual(o.orderOnly, []);
+        t.deepEqual(o.inputs.explicit, [['baz']]);
+        t.deepEqual(o.inputs.implicit, []);
+        t.deepEqual(o.inputs.orderOnly, []);
     });
     p.end(src);
 });
@@ -113,9 +113,9 @@ test('Real \'buildHead\' event', function (t) {
     p.on('buildHead', function (o) {
         t.deepEqual(o.outputs, [['build.ninja']]);
         t.equal(o.ruleName, 'configure');
-        t.deepEqual(o.inputs, []);
-        t.deepEqual(o.implicit, [['configure.py'], ['misc/ninja_syntax.py']]);
-        t.deepEqual(o.orderOnly, []);
+        t.deepEqual(o.inputs.explicit, []);
+        t.deepEqual(o.inputs.implicit, [['configure.py'], ['misc/ninja_syntax.py']]);
+        t.deepEqual(o.inputs.orderOnly, []);
     });
     p.end(src);
 });
