@@ -93,9 +93,9 @@ function normalizeEvalStringArray(arr) {
 // takes a string, and converts it into an array containing alternating
 // entries of the form:
 // * `'string'` represents literal text to be interpreted as-is.
-// * `{varName: 'name'}` represents a variable substitution, where 'name'
+// * `{name: 'varName'}` represents a variable substitution, where 'varName'
 //   is the variable name whose value should be substituted.
-// E.g. the string 'foo$bar' would become: ['foo', {varName: 'bar'}]
+// E.g. the string 'foo$bar' would become: ['foo', {name: 'bar'}]
 // This function also deals with a couple escapes that ninja permits.
 function splitEvalString(s) {
     var ret = [];
@@ -120,7 +120,7 @@ function splitEvalString(s) {
             while (i !== n && isVarnameChar(s.charCodeAt(i))) {
                 i += 1;
             }
-            ret.push({ varName: s.slice(varNameStart, i) });
+            ret.push({ name: s.slice(varNameStart, i) });
             if (i === n || s.charAt(i) !== '}') {
                 // FIXME: Need proper error handling
                 throw new Error('Expected \'}\'');
@@ -134,7 +134,7 @@ function splitEvalString(s) {
             while (i !== n && isVarnameCharNoDot(s.charCodeAt(i))) {
                 i += 1;
             }
-            ret.push({ varName: s.slice(varNameStart, i) });
+            ret.push({ name: s.slice(varNameStart, i) });
             lastIdx = i;
             continue;
         }

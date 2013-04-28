@@ -27,7 +27,7 @@ function fmtEvalString(es, altEscapes) {
     }
     return es.map(function (e) {
         if (typeof e === 'string') { return escape(e); }
-        if (typeof e === 'object') { return '${' + e.varName + '}'; }
+        if (typeof e === 'object') { return '${' + e.name + '}'; }
         // Those are the only two possibilities.
         throw new Error('Unknown entry in evalstring!');
     }).join('');

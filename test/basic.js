@@ -25,11 +25,11 @@ test('\'binding\' event', function (t) {
     }
     check('  varName = val\n', 'varName', ['val']);
     check('  vn = $foo ${bar}\n', 'vn',
-          [{varName: 'foo'}, ' ', {varName: 'bar'}]);
+          [{name: 'foo'}, ' ', {name: 'bar'}]);
     check('  vn = $foo ${bar}.d\n', 'vn',
-          [{varName: 'foo'}, ' ', {varName: 'bar'}, '.d']);
+          [{name: 'foo'}, ' ', {name: 'bar'}, '.d']);
     check('  vn = ${foo}$ $:$$\n', 'vn',
-          [{varName: 'foo'}, ' :$']);
+          [{name: 'foo'}, ' :$']);
     t.end();
 });
 
@@ -128,7 +128,7 @@ test('\'default\' event', function (t) {
     var p = parser();
     p.on('default', function (defaults) {
         t.deepEqual(defaults, [
-            [{varName: 'foo'}, ' bar'],
+            [{name: 'foo'}, ' bar'],
             ['baz']
         ]);
     });
