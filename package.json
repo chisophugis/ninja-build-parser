@@ -13,6 +13,7 @@
   "author": "Sean Silva",
   "license": "MIT",
   "devDependencies": {
-    "tap": "~0.4.1"
+    "tap": "~0.4.1",
+    "JSONStream": "~0.6.4"
   }
 }
