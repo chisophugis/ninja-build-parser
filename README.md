@@ -17,6 +17,10 @@ TODO: explain what this "bare minimum"  decomposition looks like.
 
 Currently, each structural component has a corresponding event, however,
 this is likely to change in a future version to being an object stream.
+The file `examples/identity.js` parses a .ninja file and then uses the
+provided structural information to print out a .ninja file that behaves
+identically; hence it handles all the possible structural components and
+exhibits how they are reflected in the API.
 
 ## Example
 
