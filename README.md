@@ -6,6 +6,15 @@ system](https://github.com/martine/ninja) reads.
 It's currently about 1/3 of the way from regex monstrosity to proper
 parser.
 
+The parser has not been optimized at all, but is (to my great surprise)
+actually pretty speedy.
+As a rough comparison, when building LLVM, ninja spends about 350ms (as
+reported by the `.ninja parse` metric of `ninja -d stats`) parsing the 2
+.ninja files, which total to about 4.5MB of text.
+At the time of this writing, `examples/toJson.js` takes 550ms to read both
+files (`cat`'d together) and write out a JSON representation of the .ninja
+files.
+
 ## API
 
 The basic idea of the API currently is that it decomposes the .ninja file
