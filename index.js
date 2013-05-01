@@ -152,10 +152,10 @@ function skipSpaces(s) {
 
 NinjaParser.prototype._doParse = function (chunk) {
     var m;
-    if ((m = /^\s*rule\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
+    if ((m = /^rule\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
         this.emit('ruleHead', m[1]);
     }
-    if ((m = /^\s*pool\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
+    if ((m = /^pool\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
         this.emit('poolHead', m[1]);
     }
     // Variable binding, e.g. for `rule` or `build`.
@@ -165,7 +165,7 @@ NinjaParser.prototype._doParse = function (chunk) {
         chunk = chunk.slice(m[0].length);
         this.emit('binding', indent, key, splitEvalString(chunk));
     }
-    if ((m = /^\s*build\s+/.exec(chunk))) {
+    if ((m = /^build\s+/.exec(chunk))) {
         chunk = chunk.slice(m[0].length);
         var idx;
         var outputs = [];
@@ -218,7 +218,7 @@ NinjaParser.prototype._doParse = function (chunk) {
             }
         });
     }
-    if ((m = /^\s*default\s+/.exec(chunk))) {
+    if ((m = /^default\s+/.exec(chunk))) {
         chunk = chunk.slice(m[0].length);
         var idx;
         var defaults = [];
@@ -228,7 +228,7 @@ NinjaParser.prototype._doParse = function (chunk) {
         }
         this.emit('default', defaults);
     }
-    if ((m = /^\s*(include|subninja)\s+/.exec(chunk))) {
+    if ((m = /^(include|subninja)\s+/.exec(chunk))) {
         // Since the handling of 'include' and 'subninja' will be basically
         // the same for a client, it doesn't make sense to have separate
         // events for each of them. Instead, we bunch them both into a
