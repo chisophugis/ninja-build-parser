@@ -1,6 +1,6 @@
 # ninja-build-manifest-parser
 
-This package parses the `.ninja` files that the [ninja build
+This module parses the `.ninja` files that the [ninja build
 system](https://github.com/martine/ninja) reads.
 
 It's currently about 1/3 of the way from regex monstrosity to proper
