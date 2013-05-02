@@ -1,17 +1,28 @@
 var test = require('tap').test;
 var parser = require('../index.js');
 
-test('ruleHead event', function (t) {
-    var src = 'rule $\n sampleRule\n';
+function resultEquals(t, src, expected) {
+    t.plan(1);
+    var accum = [];
     var p = parser();
-    p.on('ruleHead', function (name) {
-        t.equal(name, 'sampleRule',
-                '\'ruleHead\' event should have rule name.');
-        t.end();
+    p.on('readable', function () {
+        var o = this.read();
+        if (o) {
+            accum.push(o);
+        }
+    });
+    p.on('end', function () {
+        t.deepEqual(accum, expected);
     });
     p.end(src);
-});
+}
 
+test('ruleHead', function (t) {
+    var src = 'rule $\n sampleRule\n';
+    resultEquals(t, src, [
+        { kind: 'ruleHead', name: 'sampleRule' }
+    ]);
+});
 
 test('\'binding\' event', function (t) {
     function check(src, expectedKey, expectedValue) {
