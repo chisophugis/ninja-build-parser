@@ -2,7 +2,6 @@ var test = require('tap').test;
 var parser = require('../index.js');
 
 function resultEquals(t, src, expected) {
-    t.plan(1);
     var accum = [];
     var p = parser();
     p.on('readable', function () {
@@ -18,29 +17,41 @@ function resultEquals(t, src, expected) {
 }
 
 test('ruleHead', function (t) {
+    t.plan(1);
     var src = 'rule $\n sampleRule\n';
     resultEquals(t, src, [
         { kind: 'ruleHead', name: 'sampleRule' }
     ]);
 });
 
-test('\'binding\' event', function (t) {
-    function check(src, expectedKey, expectedValue) {
-        var p = parser();
-        p.on('binding', function (indent, key, value) {
-            t.equal(indent, '  ');
-            t.equal(key, expectedKey);
-            t.deepEqual(value, expectedValue);
-        });
-        p.end(src);
+test('binding', function (t) {
+    function check(src, expectedObj) {
+        resultEquals(t, src, [ expectedObj ])
     }
-    check('  varName = val\n', 'varName', ['val']);
-    check('  vn = $foo ${bar}\n', 'vn',
-          [{name: 'foo'}, ' ', {name: 'bar'}]);
-    check('  vn = $foo ${bar}.d\n', 'vn',
-          [{name: 'foo'}, ' ', {name: 'bar'}, '.d']);
-    check('  vn = ${foo}$ $:$$\n', 'vn',
-          [{name: 'foo'}, ' :$']);
+    check('  varName = val\n', {
+        kind: 'binding',
+        indent: '  ',
+        key: 'varName',
+        value: ['val']
+    });
+    check('  vn = $foo ${bar}\n', {
+        kind: 'binding',
+        indent: '  ',
+        key: 'vn',
+        value: [{name: 'foo'}, ' ', {name: 'bar'}]
+    });
+    check('  vn = $foo ${bar}.d\n', {
+        kind: 'binding',
+        indent: '  ',
+        key: 'vn',
+        value: [{name: 'foo'}, ' ', {name: 'bar'}, '.d']
+    });
+    check('  vn = ${foo}$ $:$$\n', {
+        kind: 'binding',
+        indent: '  ',
+        key: 'vn',
+        value: [{name: 'foo'}, ' :$']
+    });
     t.end();
 });
 
