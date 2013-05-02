@@ -181,19 +181,10 @@ NinjaParser.prototype._cannotHaveBindings = function (o) {
 
 NinjaParser.prototype._doParse = function (chunk) {
     var m;
-    if ((m = /^rule\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
+    if ((m = /^(rule|pool)\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
         this._canHaveBindings({
-            kind: 'rule',
-            name: m[1],
-            bindings: {}
-        });
-    }
-    // TODO: this and the above can be merged into a single match, like
-    // include/subninja.
-    if ((m = /^pool\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
-        this._canHaveBindings({
-            kind: 'pool',
-            name: m[1],
+            kind: m[1],
+            name: m[2],
             bindings: {}
         });
     }
