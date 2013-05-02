@@ -270,7 +270,7 @@ NinjaParser.prototype._doParse = function (chunk) {
         this.emit('fileReference', m[1], splitEvalString(chunk.slice(m[0].length)));
         this.push({
             kind: m[1],
-            file: splitEvalString(chunk.slice(m[0].length))
+            path: splitEvalString(chunk.slice(m[0].length))
         });
     }
 };
