@@ -17,34 +17,29 @@ files.
 
 ## API
 
-NOTE: the API is currently undergoing a transition from evented to an
-object stream.
-
 The basic idea of the API currently is that it decomposes the .ninja file
-into its basic structural components without attempting to interpret them.
+into its basic components without attempting to interpret them.
 It does the bare minimum to get from a flat text file to something that can
 be operated on programmatically.
 
-TODO: explain what this "bare minimum"  decomposition looks like.
-
-Currently, each structural component has a corresponding event, however,
-this is likely to change in a future version to being an object stream.
 The file `examples/identity.js` parses a .ninja file and then uses the
 provided structural information to print out a .ninja file that behaves
-identically; hence it handles all the possible structural components and
+identically; hence it handles all the possible .ninja file components and
 exhibits how they are reflected in the API.
 
 ## Example
 
 ```js
-// Print all build declarations with more than 1 output.
+// Print all `build` declarations with more than 1 output.
 var parser = require('../index.js');
 var p = parser();
+process.stdin.pipe(p);
 
-process.nextTick(function () {
-    process.stdin.pipe(p);
-});
-p.on('buildHead', function (o) {
+p.on('readable', function () {
+    var o = this.read();
+    if (o.kind !== 'build') {
+        return;
+    }
     if (o.outputs.length > 1) {
         console.log(o.ruleName);
         console.log(o.outputs);
