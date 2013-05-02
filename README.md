@@ -3,8 +3,9 @@
 This module parses the `.ninja` files that the [ninja build
 system](https://github.com/martine/ninja) reads.
 
-It's currently about 1/3 of the way from regex monstrosity to proper
-parser.
+On a scale of 0-9, where 0 is a regex monstrosity and 9 is a proper parser,
+I would rate it about a 3 or 4. It's simple though; that counts for
+something.
 
 The parser has not been optimized at all, but is (to my great surprise)
 actually pretty speedy.
