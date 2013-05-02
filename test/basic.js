@@ -25,7 +25,7 @@ test('ruleHead', function (t) {
     t.plan(1);
     var src = 'rule $\n sampleRule\n';
     resultEquals(t, src, [
-        { kind: 'ruleHead', name: 'sampleRule' }
+        { kind: 'ruleHead', name: 'sampleRule', bindings: {} }
     ]);
 });
 
@@ -33,27 +33,23 @@ test('binding', function (t) {
     function check(src, expectedObj) {
         resultEquals(t, src, [ expectedObj ])
     }
-    check('  varName = val\n', {
+    check('varName = val\n', {
         kind: 'binding',
-        indent: '  ',
         key: 'varName',
         value: ['val']
     });
-    check('  vn = $foo ${bar}\n', {
+    check('vn = $foo ${bar}\n', {
         kind: 'binding',
-        indent: '  ',
         key: 'vn',
         value: [{name: 'foo'}, ' ', {name: 'bar'}]
     });
-    check('  vn = $foo ${bar}.d\n', {
+    check('vn = $foo ${bar}.d\n', {
         kind: 'binding',
-        indent: '  ',
         key: 'vn',
         value: [{name: 'foo'}, ' ', {name: 'bar'}, '.d']
     });
-    check('  vn = ${foo}$ $:$$\n', {
+    check('vn = ${foo}$ $:$$\n', {
         kind: 'binding',
-        indent: '  ',
         key: 'vn',
         value: [{name: 'foo'}, ' :$']
     });
@@ -64,7 +60,7 @@ test('finish parsing on end', function (t) {
     t.plan(1);
     var src = 'rule noTerminatingNewline';
     resultEquals(t, src, [
-        { kind: 'ruleHead', name: 'noTerminatingNewline' }
+        { kind: 'ruleHead', name: 'noTerminatingNewline', bindings: {} }
     ]);
 });
 
@@ -74,24 +70,24 @@ test('basic rule parsing', function (t) {
         '  command = $cxx $cxxflags -MMD -MT $out -MF $out.d -o $out -c $in\n';
     t.plan(1);
     resultEquals(t, src, [
-        { kind: 'ruleHead', name: 'cxx' },
         {
-            kind: 'binding',
-            indent: '  ',
-            key: 'command',
-            value: [
-                {name: 'cxx'},
-                ' ',
-                {name: 'cxxflags'},
-                ' -MMD -MT ',
-                {name: 'out'},
-                ' -MF ',
-                {name: 'out'},
-                '.d -o ',
-                {name: 'out'},
-                ' -c ',
-                {name: 'in'}
-            ]
+            kind: 'ruleHead',
+            name: 'cxx',
+            bindings: {
+                'command': [
+                    {name: 'cxx'},
+                    ' ',
+                    {name: 'cxxflags'},
+                    ' -MMD -MT ',
+                    {name: 'out'},
+                    ' -MF ',
+                    {name: 'out'},
+                    '.d -o ',
+                    {name: 'out'},
+                    ' -c ',
+                    {name: 'in'}
+                ]
+            }
         }
     ]);
 });
@@ -103,7 +99,6 @@ test('top-level binding', function (t) {
     resultEquals(t, src, [
         {
             kind: 'binding',
-            indent: '',
             key: 'cxx',
             value: ['clang++']
         }
@@ -122,7 +117,8 @@ test('buildHead', function (t) {
                 explicit: [ ['baz'] ],
                 implicit: [ [{name: 'qux'}], [{name: 'quux'}] ],
                 orderOnly: [ [{name: 'frob'}, '.inc'] ]
-            }
+            },
+            bindings: {}
         }
     ]);
 });
@@ -163,7 +159,7 @@ test('poolHead', function (t) {
     t.plan(1);
     var src = 'pool test_pool';
     resultEquals(t, src, [
-        { kind: 'poolHead', name: 'test_pool' }
+        { kind: 'poolHead', name: 'test_pool', bindings: {} }
     ]);
 });
 
@@ -174,7 +170,6 @@ test('$\\n escapes skip leading whitespace on next line', function (t) {
         resultEquals(t, arr, [
             {
                 kind: 'binding',
-                indent: '',
                 key: 'key',
                 value: ['stuck$together']
             }

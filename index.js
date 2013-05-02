@@ -16,6 +16,9 @@ function NinjaParser() {
     // After we see a $\n escape, we need to make note that we are skipping
     // spaces. This has to persist across calls to _transform.
     this._skippingSpaces = false;
+    // Stores the object that any indented bindings should attach to, or
+    // null if there is no such object.
+    this._currentHead = null;
 }
 
 NinjaParser.prototype = Object.create(Transform.prototype, {
@@ -24,6 +27,9 @@ NinjaParser.prototype = Object.create(Transform.prototype, {
 
 NinjaParser.prototype._flush = function (done) {
     this._doParse(this._waitingForNewline);
+    if (this._currentHead !== null) {
+        this.push(this._currentHead);
+    }
     done();
 };
 
@@ -154,20 +160,41 @@ function skipSpaces(s) {
     return s.slice(idx);
 }
 
+// Called when a `build`, `rule`, or other construct that might have
+// bindings is encountered.
+NinjaParser.prototype._canHaveBindings = function (o) {
+    if (this._currentHead !== null) {
+        this.push(this._currentHead);
+    }
+    this._currentHead = o;
+};
+
+// Called when a `default`, `include`, or other construct that is *not*
+// allowed to have bindings is encountered.
+NinjaParser.prototype._cannotHaveBindings = function (o) {
+    if (this._currentHead !== null) {
+        this.push(this._currentHead);
+        this._currentHead = null;
+    }
+    this.push(o);
+};
+
 NinjaParser.prototype._doParse = function (chunk) {
     var m;
     if ((m = /^rule\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
-        this.push({
+        this._canHaveBindings({
             kind: 'ruleHead',
-            name: m[1]
+            name: m[1],
+            bindings: {}
         });
     }
     // TODO: this and the above can be merged into a single match, like
     // include/subninja.
     if ((m = /^pool\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
-        this.push({
+        this._canHaveBindings({
             kind: 'poolHead',
-            name: m[1]
+            name: m[1],
+            bindings: {}
         });
     }
     // Variable binding, e.g. for `rule` or `build`.
@@ -175,12 +202,21 @@ NinjaParser.prototype._doParse = function (chunk) {
         var indent = m[1];
         var key = m[2];
         chunk = chunk.slice(m[0].length);
-        this.push({
-            kind: 'binding',
-            indent: indent,
-            key: key,
-            value: splitEvalString(chunk)
-        });
+        var value = splitEvalString(chunk);
+        if (indent.length === 0) {
+            this._cannotHaveBindings({
+                kind: 'binding',
+                key: key,
+                value: value
+            });
+        } else {
+            if (this._currentHead === null) {
+                throw new Error('Unexpected indented binding');
+            }
+            // Duplicate bindings will just get overwritten.
+            // This is how ninja does it.
+            this._currentHead.bindings[key] = value;
+        }
     }
     if ((m = /^build\s+/.exec(chunk))) {
         chunk = chunk.slice(m[0].length);
@@ -225,7 +261,7 @@ NinjaParser.prototype._doParse = function (chunk) {
             deps[state].push(splitEvalString(chunk.slice(0, idx + 1)));
             chunk = skipSpaces(chunk.slice(idx + 1));
         }
-        this.push({
+        this._canHaveBindings({
             kind: 'buildHead',
             outputs: outputs,
             ruleName: ruleName,
@@ -233,7 +269,8 @@ NinjaParser.prototype._doParse = function (chunk) {
                 explicit: deps[0],
                 implicit: deps[1],
                 orderOnly: deps[2]
-            }
+            },
+            bindings: {}
         });
     }
     if ((m = /^default\s+/.exec(chunk))) {
@@ -244,13 +281,13 @@ NinjaParser.prototype._doParse = function (chunk) {
             defaults.push(splitEvalString(chunk.slice(0, idx + 1)));
             chunk = skipSpaces(chunk.slice(idx + 1));
         }
-        this.push({
+        this._cannotHaveBindings({
             kind: 'default',
             defaults: defaults
         });
     }
     if ((m = /^(include|subninja)\s+/.exec(chunk))) {
-        this.push({
+        this._cannotHaveBindings({
             kind: m[1],
             path: splitEvalString(chunk.slice(m[0].length))
         });
