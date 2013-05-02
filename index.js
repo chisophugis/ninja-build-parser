@@ -157,7 +157,6 @@ function skipSpaces(s) {
 NinjaParser.prototype._doParse = function (chunk) {
     var m;
     if ((m = /^rule\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
-        this.emit('ruleHead', m[1]);
         this.push({
             kind: 'ruleHead',
             name: m[1]
@@ -166,7 +165,6 @@ NinjaParser.prototype._doParse = function (chunk) {
     // TODO: this and the above can be merged into a single match, like
     // include/subninja.
     if ((m = /^pool\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
-        this.emit('poolHead', m[1]);
         this.push({
             kind: 'poolHead',
             name: m[1]
@@ -177,7 +175,6 @@ NinjaParser.prototype._doParse = function (chunk) {
         var indent = m[1];
         var key = m[2];
         chunk = chunk.slice(m[0].length);
-        this.emit('binding', indent, key, splitEvalString(chunk));
         this.push({
             kind: 'binding',
             indent: indent,
@@ -228,15 +225,6 @@ NinjaParser.prototype._doParse = function (chunk) {
             deps[state].push(splitEvalString(chunk.slice(0, idx + 1)));
             chunk = skipSpaces(chunk.slice(idx + 1));
         }
-        this.emit('buildHead', {
-            outputs: outputs,
-            ruleName: ruleName,
-            inputs: {
-                explicit: deps[0],
-                implicit: deps[1],
-                orderOnly: deps[2]
-            }
-        });
         this.push({
             kind: 'buildHead',
             outputs: outputs,
@@ -256,18 +244,12 @@ NinjaParser.prototype._doParse = function (chunk) {
             defaults.push(splitEvalString(chunk.slice(0, idx + 1)));
             chunk = skipSpaces(chunk.slice(idx + 1));
         }
-        this.emit('default', defaults);
         this.push({
             kind: 'default',
             defaults: defaults
         });
     }
     if ((m = /^(include|subninja)\s+/.exec(chunk))) {
-        // Since the handling of 'include' and 'subninja' will be basically
-        // the same for a client, it doesn't make sense to have separate
-        // events for each of them. Instead, we bunch them both into a
-        // 'fileReference' event.
-        this.emit('fileReference', m[1], splitEvalString(chunk.slice(m[0].length)));
         this.push({
             kind: m[1],
             path: splitEvalString(chunk.slice(m[0].length))
