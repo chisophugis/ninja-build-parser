@@ -1,4 +1,4 @@
-var Writable = require('stream').Writable;
+var Transform = require('stream').Transform;
 var util = require('util');
 
 module.exports = function () {
@@ -6,24 +6,28 @@ module.exports = function () {
 };
 
 function NinjaParser() {
-    Writable.call(this, {decodeStrings: false});
+    Transform.call(this, {
+        objectMode: true,
+        decodeStrings: false
+    });
     // Buffers up until chunks until a full line is found (well, permitting
     // $\n escapes).
     this._waitingForNewline = '';
     // After we see a $\n escape, we need to make note that we are skipping
-    // spaces. This has to persist across calls to _write.
+    // spaces. This has to persist across calls to _transform.
     this._skippingSpaces = false;
-
-    this.on('finish', function () {
-        this._doParse(this._waitingForNewline);
-    });
 }
 
-NinjaParser.prototype = Object.create(Writable.prototype, {
+NinjaParser.prototype = Object.create(Transform.prototype, {
   constructor: { value: NinjaParser }
 });
 
-NinjaParser.prototype._write = function (chunk, encoding, done) {
+NinjaParser.prototype._flush = function (done) {
+    this._doParse(this._waitingForNewline);
+    done();
+};
+
+NinjaParser.prototype._transform = function (chunk, encoding, done) {
     // TODO: keep track of current line
     if (chunk.length === 0) { done(); return; }
     if (Buffer.isBuffer(chunk)) { chunk = chunk.toString(encoding); }
