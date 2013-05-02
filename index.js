@@ -158,9 +158,19 @@ NinjaParser.prototype._doParse = function (chunk) {
     var m;
     if ((m = /^rule\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
         this.emit('ruleHead', m[1]);
+        this.push({
+            kind: 'ruleHead',
+            name: m[1]
+        });
     }
+    // TODO: this and the above can be merged into a single match, like
+    // include/subninja.
     if ((m = /^pool\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
         this.emit('poolHead', m[1]);
+        this.push({
+            kind: 'poolHead',
+            name: m[1]
+        });
     }
     // Variable binding, e.g. for `rule` or `build`.
     if ((m = /^(\s*)([a-zA-Z0-9._-]+)\s*=\s*/.exec(chunk))) {
@@ -168,6 +178,12 @@ NinjaParser.prototype._doParse = function (chunk) {
         var key = m[2];
         chunk = chunk.slice(m[0].length);
         this.emit('binding', indent, key, splitEvalString(chunk));
+        this.push({
+            kind: 'binding',
+            indent: indent,
+            key: key,
+            value: splitEvalString(chunk)
+        });
     }
     if ((m = /^build\s+/.exec(chunk))) {
         chunk = chunk.slice(m[0].length);
@@ -221,6 +237,16 @@ NinjaParser.prototype._doParse = function (chunk) {
                 orderOnly: deps[2]
             }
         });
+        this.push({
+            kind: 'buildHead',
+            outputs: outputs,
+            ruleName: ruleName,
+            inputs: {
+                explicit: deps[0],
+                implicit: deps[1],
+                orderOnly: deps[2]
+            }
+        });
     }
     if ((m = /^default\s+/.exec(chunk))) {
         chunk = chunk.slice(m[0].length);
@@ -231,6 +257,10 @@ NinjaParser.prototype._doParse = function (chunk) {
             chunk = skipSpaces(chunk.slice(idx + 1));
         }
         this.emit('default', defaults);
+        this.push({
+            kind: 'default',
+            defaults: defaults
+        });
     }
     if ((m = /^(include|subninja)\s+/.exec(chunk))) {
         // Since the handling of 'include' and 'subninja' will be basically
@@ -238,6 +268,10 @@ NinjaParser.prototype._doParse = function (chunk) {
         // events for each of them. Instead, we bunch them both into a
         // 'fileReference' event.
         this.emit('fileReference', m[1], splitEvalString(chunk.slice(m[0].length)));
+        this.push({
+            kind: m[1],
+            file: splitEvalString(chunk.slice(m[0].length))
+        });
     }
 };
 
