@@ -187,6 +187,7 @@ NinjaParser.prototype._doParse = function (chunk) {
             name: m[2],
             bindings: {}
         });
+        return;
     }
     // Variable binding, e.g. for `rule` or `build`.
     if ((m = /^(\s*)([a-zA-Z0-9._-]+)\s*=\s*/.exec(chunk))) {
@@ -208,6 +209,7 @@ NinjaParser.prototype._doParse = function (chunk) {
             // This is how ninja does it.
             this._current.bindings[key] = value;
         }
+        return;
     }
     if ((m = /^build\s+/.exec(chunk))) {
         chunk = chunk.slice(m[0].length);
@@ -263,6 +265,7 @@ NinjaParser.prototype._doParse = function (chunk) {
             },
             bindings: {}
         });
+        return;
     }
     if ((m = /^default\s+/.exec(chunk))) {
         chunk = chunk.slice(m[0].length);
@@ -276,12 +279,14 @@ NinjaParser.prototype._doParse = function (chunk) {
             kind: 'default',
             defaults: defaults
         });
+        return;
     }
     if ((m = /^(include|subninja)\s+/.exec(chunk))) {
         this._cannotHaveBindings({
             kind: m[1],
             path: splitEvalString(chunk.slice(m[0].length))
         });
+        return;
     }
 };
 
