@@ -72,6 +72,7 @@ reported by the `.ninja parse` metric of `ninja -d stats`) parsing the 2
 At the time of this writing, `examples/toJson.js` takes 450ms to read both
 files (`cat`'d together) and write out a JSON representation (also about
 4.5MB) of the .ninja files.
+
 Note that this comparison doesn't tell the whole story because that time
 that ninja reports also includes building up the initial dependency graph
 structure and evaluating all variable substitutions.
