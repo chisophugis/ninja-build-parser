@@ -17,6 +17,9 @@ files.
 
 ## API
 
+NOTE: the API is currently undergoing a transition from evented to an
+object stream.
+
 The basic idea of the API currently is that it decomposes the .ninja file
 into its basic structural components without attempting to interpret them.
 It does the bare minimum to get from a flat text file to something that can
