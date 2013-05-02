@@ -18,7 +18,7 @@ function NinjaParser() {
     this._skippingSpaces = false;
     // Stores the object that any indented bindings should attach to, or
     // null if there is no such object.
-    this._currentHead = null;
+    this._current = null;
 }
 
 NinjaParser.prototype = Object.create(Transform.prototype, {
@@ -27,8 +27,8 @@ NinjaParser.prototype = Object.create(Transform.prototype, {
 
 NinjaParser.prototype._flush = function (done) {
     this._doParse(this._waitingForNewline);
-    if (this._currentHead !== null) {
-        this.push(this._currentHead);
+    if (this._current !== null) {
+        this.push(this._current);
     }
     done();
 };
@@ -163,18 +163,18 @@ function skipSpaces(s) {
 // Called when a `build`, `rule`, or other construct that might have
 // bindings is encountered.
 NinjaParser.prototype._canHaveBindings = function (o) {
-    if (this._currentHead !== null) {
-        this.push(this._currentHead);
+    if (this._current !== null) {
+        this.push(this._current);
     }
-    this._currentHead = o;
+    this._current = o;
 };
 
 // Called when a `default`, `include`, or other construct that is *not*
 // allowed to have bindings is encountered.
 NinjaParser.prototype._cannotHaveBindings = function (o) {
-    if (this._currentHead !== null) {
-        this.push(this._currentHead);
-        this._currentHead = null;
+    if (this._current !== null) {
+        this.push(this._current);
+        this._current = null;
     }
     this.push(o);
 };
@@ -183,7 +183,7 @@ NinjaParser.prototype._doParse = function (chunk) {
     var m;
     if ((m = /^rule\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
         this._canHaveBindings({
-            kind: 'ruleHead',
+            kind: 'rule',
             name: m[1],
             bindings: {}
         });
@@ -192,7 +192,7 @@ NinjaParser.prototype._doParse = function (chunk) {
     // include/subninja.
     if ((m = /^pool\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
         this._canHaveBindings({
-            kind: 'poolHead',
+            kind: 'pool',
             name: m[1],
             bindings: {}
         });
@@ -210,12 +210,12 @@ NinjaParser.prototype._doParse = function (chunk) {
                 value: value
             });
         } else {
-            if (this._currentHead === null) {
+            if (this._current === null) {
                 throw new Error('Unexpected indented binding');
             }
             // Duplicate bindings will just get overwritten.
             // This is how ninja does it.
-            this._currentHead.bindings[key] = value;
+            this._current.bindings[key] = value;
         }
     }
     if ((m = /^build\s+/.exec(chunk))) {
@@ -262,7 +262,7 @@ NinjaParser.prototype._doParse = function (chunk) {
             chunk = skipSpaces(chunk.slice(idx + 1));
         }
         this._canHaveBindings({
-            kind: 'buildHead',
+            kind: 'build',
             outputs: outputs,
             ruleName: ruleName,
             inputs: {

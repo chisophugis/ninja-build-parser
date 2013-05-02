@@ -21,11 +21,11 @@ function resultEquals(t, src, expected) {
     }
 }
 
-test('ruleHead', function (t) {
+test('rule', function (t) {
     t.plan(1);
     var src = 'rule $\n sampleRule\n';
     resultEquals(t, src, [
-        { kind: 'ruleHead', name: 'sampleRule', bindings: {} }
+        { kind: 'rule', name: 'sampleRule', bindings: {} }
     ]);
 });
 
@@ -60,7 +60,7 @@ test('finish parsing on end', function (t) {
     t.plan(1);
     var src = 'rule noTerminatingNewline';
     resultEquals(t, src, [
-        { kind: 'ruleHead', name: 'noTerminatingNewline', bindings: {} }
+        { kind: 'rule', name: 'noTerminatingNewline', bindings: {} }
     ]);
 });
 
@@ -71,7 +71,7 @@ test('basic rule parsing', function (t) {
     t.plan(1);
     resultEquals(t, src, [
         {
-            kind: 'ruleHead',
+            kind: 'rule',
             name: 'cxx',
             bindings: {
                 'command': [
@@ -105,12 +105,12 @@ test('top-level binding', function (t) {
     ]);
 });
 
-test('buildHead', function (t) {
+test('build', function (t) {
     t.plan(1);
     var src = 'build foo: bar baz | $qux $quux || $frob.inc';
     resultEquals(t, src, [
         {
-            kind: 'buildHead',
+            kind: 'build',
             outputs: [ ['foo'] ],
             ruleName: 'bar',
             inputs: {
@@ -155,11 +155,11 @@ test('include and subninja', function (t) {
     ]);
 });
 
-test('poolHead', function (t) {
+test('pool', function (t) {
     t.plan(1);
     var src = 'pool test_pool';
     resultEquals(t, src, [
-        { kind: 'poolHead', name: 'test_pool', bindings: {} }
+        { kind: 'pool', name: 'test_pool', bindings: {} }
     ]);
 });
 
