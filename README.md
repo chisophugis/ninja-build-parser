@@ -75,7 +75,7 @@ files (`cat`'d together) and write out a JSON representation (also about
 
 Note that this comparison doesn't tell the whole story because that time
 that ninja reports also includes building up the initial dependency graph
-structure and evaluating all variable substitutions.
+structure and evaluating variable substitutions.
 However, this is mostly wasted work anyway since it doesn't need to be on
 the critical path, which finding the first file that needs to be rebuilt.
 Another example of such inefficiency is that ninja reads the entire .ninja
