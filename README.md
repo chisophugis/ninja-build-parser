@@ -1,4 +1,4 @@
-# ninja-build-manifest-parser
+# ninja-build-parser
 
 This module parses the `.ninja` files that the [ninja build
 system](https://github.com/martine/ninja) reads.
