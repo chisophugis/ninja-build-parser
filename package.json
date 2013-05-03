@@ -6,7 +6,10 @@
   "scripts": {
     "test": "tap test/*.js"
   },
-  "repository": "",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/chisophugis/ninja-build-parser.git"
+  },
   "keywords": [
     "ninja-build"
   ],
