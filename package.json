@@ -1,7 +1,7 @@
 {
   "name": "ninja-build-parser",
   "version": "0.2.0",
-  "description": "Parser ninja-build's .ninja manifest files.",
+  "description": "Parse ninja-build's .ninja manifest files.",
   "main": "index.js",
   "scripts": {
     "test": "tap test/*.js"
