@@ -14,7 +14,7 @@ into its basic components without attempting to interpret them.
 It does the bare minimum to get from a flat text file to something that can
 be operated on programmatically.
 
-The file `examples/identity.js` parses a .ninja file and then uses the
+The file `example/identity.js` parses a .ninja file and then uses the
 provided structural information to print out a .ninja file that behaves
 identically; hence it handles all the possible .ninja file components and
 exhibits how they are reflected in the API.
@@ -69,7 +69,7 @@ actually pretty speedy.
 As a rough comparison, when building LLVM, ninja spends about 350ms (as
 reported by the `.ninja parse` metric of `ninja -d stats`) parsing the 2
 .ninja files, which total to about 4.5MB of text.
-At the time of this writing, `examples/toJson.js` takes 450ms to read both
+At the time of this writing, `example/toJson.js` takes 450ms to read both
 files (`cat`'d together) and write out a JSON representation (also about
 4.5MB) of the .ninja files.
 
