@@ -2,27 +2,18 @@
 
 This module parses the `.ninja` files that the [ninja build
 system](https://github.com/martine/ninja) reads.
+It does the bare minimum to get from flat text to something that can be
+operated on programmatically.
 
 On a scale of 0-9, where 0 is a regex monstrosity and 9 is a proper parser,
 I would rate it about a 3 or 4. It's simple though; that counts for
 something.
 
-## API
-
-The basic idea of the API currently is that it decomposes the .ninja file
-into its basic components without attempting to interpret them.
-It does the bare minimum to get from a flat text file to something that can
-be operated on programmatically.
-
-The file `example/identity.js` parses a .ninja file and then uses the
-provided structural information to print out a .ninja file that behaves
-identically; hence it handles all the possible .ninja file components and
-exhibits how they are reflected in the API.
-
 ## Example
 
 ```js
-// Print all `build` declarations with more than 1 output.
+// Print info about `build` declarations with >1 output in the given file.
+// Reads the .ninja file from stdin.
 var parser = require('../index.js');
 var p = parser();
 process.stdin.pipe(p);
@@ -39,6 +30,24 @@ p.on('readable', function () {
 });
 ```
 
+## API
+
+The basic idea of the API is that it decomposes the .ninja file
+into its basic components without attempting to interpret them (for
+example, it does not handle `include` or `subninja`).
+
+This is exposed as a through/Transform stream: pipe .ninja source into one
+side, and objects representing the file will come out the other side.
+
+`example/identity.js` uses the API to read a .ninja file and print out
+another .ninja file that behaves identically.
+Hence it is a good learning resource because it handles all the possible
+.ninja file components and exhibits how they are reflected in the API.
+
+`example/toJson.js` is useful if you just want to dump the stream of
+objects into a JSON array to look at it (with your favorite JSON
+pretty-printer/inspector).
+
 ## Limitations
 
 Generally, the parser is not very error tolerant or helpful for humans.
@@ -53,14 +62,7 @@ In particular:
 This limitation doesn't pose a huge problem since most interesting .ninja
 files are generated programmatically and don't have errors.
 Besides, one can always run the file through ninja itself in order to get
-slightly more helpful diagnostics (e.g. caret diagnostics with line
-numbers).
-
-It would be neat to have a "sourcecode-stream" module that you can pipe
-text through.
-Basically all it needs to do is keeps track of source locations as chunks
-go through and have functionality for giving nice diagostics based on that
-information.
+more helpful diagnostics (e.g. caret diagnostics with line numbers).
 
 ## Performance
 
