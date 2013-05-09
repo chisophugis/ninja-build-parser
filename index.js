@@ -10,8 +10,8 @@ function NinjaParser() {
         objectMode: true,
         decodeStrings: false
     });
-    // Buffers up until chunks until a full line is found (well, permitting
-    // $\n escapes).
+    // Buffers up chunks until a full line is found (well, permitting $\n
+    // escapes).
     this._waitingForNewline = '';
     // After we see a $\n escape, we need to make note that we are skipping
     // spaces. This has to persist across calls to _transform.
