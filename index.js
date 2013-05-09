@@ -25,11 +25,30 @@ NinjaParser.prototype = Object.create(Transform.prototype, {
   constructor: { value: NinjaParser }
 });
 
+function flushCurrent(this_) {
+    if (this_._current !== null) {
+        this_.push(this_._current);
+    }
+}
+
+// Called when a `build`, `rule`, or other construct that might have
+// bindings is encountered.
+function onCanHaveBindings(this_, o) {
+    flushCurrent(this_);
+    this_._current = o;
+}
+
+// Called when a `default`, `include`, or other construct that is *not*
+// allowed to have bindings is encountered.
+function onCannotHaveBindings(this_, o) {
+    flushCurrent(this_);
+    this_._current = null;
+    this_.push(o);
+}
+
 NinjaParser.prototype._flush = function (done) {
     this._doParse(this._waitingForNewline);
-    if (this._current !== null) {
-        this.push(this._current);
-    }
+    flushCurrent(this);
     done();
 };
 
@@ -160,29 +179,10 @@ function skipSpaces(s) {
     return s.slice(idx);
 }
 
-// Called when a `build`, `rule`, or other construct that might have
-// bindings is encountered.
-NinjaParser.prototype._canHaveBindings = function (o) {
-    if (this._current !== null) {
-        this.push(this._current);
-    }
-    this._current = o;
-};
-
-// Called when a `default`, `include`, or other construct that is *not*
-// allowed to have bindings is encountered.
-NinjaParser.prototype._cannotHaveBindings = function (o) {
-    if (this._current !== null) {
-        this.push(this._current);
-        this._current = null;
-    }
-    this.push(o);
-};
-
 NinjaParser.prototype._doParse = function (chunk) {
     var m;
     if ((m = /^(rule|pool)\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
-        this._canHaveBindings({
+        onCanHaveBindings(this, {
             kind: m[1],
             name: m[2],
             bindings: {}
@@ -196,7 +196,7 @@ NinjaParser.prototype._doParse = function (chunk) {
         chunk = chunk.slice(m[0].length);
         var value = splitEvalString(chunk);
         if (indent.length === 0) {
-            this._cannotHaveBindings({
+            onCannotHaveBindings(this, {
                 kind: 'binding',
                 key: key,
                 value: value
@@ -254,7 +254,7 @@ NinjaParser.prototype._doParse = function (chunk) {
             deps[state].push(splitEvalString(chunk.slice(0, idx + 1)));
             chunk = skipSpaces(chunk.slice(idx + 1));
         }
-        this._canHaveBindings({
+        onCanHaveBindings(this, {
             kind: 'build',
             outputs: outputs,
             ruleName: ruleName,
@@ -275,14 +275,14 @@ NinjaParser.prototype._doParse = function (chunk) {
             defaults.push(splitEvalString(chunk.slice(0, idx + 1)));
             chunk = skipSpaces(chunk.slice(idx + 1));
         }
-        this._cannotHaveBindings({
+        onCannotHaveBindings(this, {
             kind: 'default',
             defaults: defaults
         });
         return;
     }
     if ((m = /^(include|subninja)\s+/.exec(chunk))) {
-        this._cannotHaveBindings({
+        onCannotHaveBindings(this, {
             kind: m[1],
             path: splitEvalString(chunk.slice(m[0].length))
         });
