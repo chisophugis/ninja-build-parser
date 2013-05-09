@@ -240,7 +240,7 @@ NinjaParser.prototype._doParse = function (chunk) {
         for (;;) {
             var opMatch = chunk.match(/^\|\|?/);
             if (opMatch !== null) {
-                var op = opMatch[0].trim();
+                var op = opMatch[0];
                 if (state >= op.length) {
                     throw new Error('Only need to specify | or || once.');
                 }
