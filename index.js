@@ -181,6 +181,7 @@ function skipSpaces(s) {
 
 NinjaParser.prototype._doParse = function (chunk) {
     var m;
+    var idx;
     if ((m = /^(rule|pool)\s+([a-zA-Z0-9._-]+)\s*$/.exec(chunk))) {
         onCanHaveBindings(this, {
             kind: m[1],
@@ -213,7 +214,6 @@ NinjaParser.prototype._doParse = function (chunk) {
     }
     if ((m = /^build\s+/.exec(chunk))) {
         chunk = chunk.slice(m[0].length);
-        var idx;
         var outputs = [];
         while ((idx = chunk.search(/[^$][: ]/)) !== -1) {
             // match officially starts on the [^$].
@@ -269,7 +269,6 @@ NinjaParser.prototype._doParse = function (chunk) {
     }
     if ((m = /^default\s+/.exec(chunk))) {
         chunk = chunk.slice(m[0].length);
-        var idx;
         var defaults = [];
         while ((idx = chunk.search(/[^$](?: |$)/)) !== -1) {
             defaults.push(splitEvalString(chunk.slice(0, idx + 1)));
